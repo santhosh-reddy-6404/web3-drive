@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  
+  <meta charset="UTF-8">
+  
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  
+  <meta name="viewport" content="width=device-width, user-scalable=no"/>
+  
+  <link rel="stylesheet" href="/assets/style.css"></link>
+  
+  <link rel="manifest" href="manifest.json">
+  
+  <script>
+    if('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/sw.js');
+    }
+  </script>
+  
+  <title>Web3Drive - Blockchain File Sharing Dapp</title>
+
+  <script src="https://unpkg.com/react@16/umd/react.production.min.js"></script>
+  
+  <script src="https://unpkg.com/react-dom@16/umd/react-dom.production.min.js"></script>
+ 
+  <script src="https://unpkg.com/babel-standalone@6.15.0/babel.min.js"></script>
+  
+  <script src='https://unpkg.com/react-router-dom@5.0.0/umd/react-router-dom.min.js'></script>
+  
+  <script src="/assets/fontawesome.js"></script>
+  
+  <script src="https://cdn.jsdelivr.net/npm/web3@1.6.1/dist/web3.min.js"></script>
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.0.0/crypto-js.min.js"></script> 	
+  
+  <script src="https://unpkg.com/moralis/dist/moralis.js"></script>
+  
+  <script src="/assets/script.js"></script>
+  
+</head>
+
+<body>
+  
+<div id="loader"></div>
+  
+<div id="app"></div>
+
+<script type="text/babel">// Start...
+
+const Router = ReactRouterDOM.HashRouter;
+const Switch = ReactRouterDOM.Switch;
+const Link = ReactRouterDOM.Link;
+const Route = ReactRouterDOM.Route;
+
+const { useState } = React
+const { useEffect } = React
+
+// App Component...
+
+const App = () => {
+
+const [data, setData] = useState([{}])
+const [dataL, setDataL] = useState([{}])
+const [none, setNone] = useState("0")
+
+if(localStorage.getItem('data')) {
+  null
+} else {
+  var hashL = CryptoJS.AES.encrypt(JSON.stringify(dataL), key, {
+    iv: iv,
+    mode: CryptoJS.mode.CBC,
+    padding: CryptoJS.pad.Pkcs7
+  }).toString()
+  localStorage.setItem('data',hashL)
+}
+
+useEffect(async() => {
+var hash= await contract.methods.getVal().call()
+const url = 'https://ipfs.io/ipfs/'+hash
+const response = await fetch(url);
+return response.json().then((k) => {
+  var object = CryptoJS.AES.decrypt(k[0].hash, key, {
+    iv: iv,
+    mode: CryptoJS.mode.CBC,
+    padding: CryptoJS.pad.Pkcs7
+  }).toString(CryptoJS.enc.Utf8)
+  setData(JSON.parse(object))
+})
+},[])
+useEffect(() => {
+var hashL = localStorage.getItem('data')
+var objectL = CryptoJS.AES.decrypt(hashL, key, {
+    iv: iv,
+    mode: CryptoJS.mode.CBC,
+    padding: CryptoJS.pad.Pkcs7
+  }).toString(CryptoJS.enc.Utf8)
+  setDataL(JSON.parse(objectL))
+}, [])
+
+//Authentication...
+
+const [log, setLog] = useState(false)
+
+if (Moralis.User.current()) {
+var user = Moralis.User.current().get('ethAddress');
+useEffect(() => {
+  setLog(true)
+})
+} else {
+  var user = "null"
+}
+
+const LogIn = () => {
+if (window.ethereum) {
+  Moralis.authenticate({ signingMessage: "hello!" }).then((user) => {
+  window.location.reload()
+  alert(user.get('ethAddress'))
+  setLog(true)
+  })
+} else {
+  alert("You don't have metamask installed on your browser! Unable to login...")
+}
+}
+  
+//Header...
+
+const Header = () => {
+
+const [balance, setBal] = useState('0')
+if(log===true) {
+web3.eth.getBalance(user).then(function (balance) { setBal((web3.utils.fromWei(balance, 'ether').toString()).substr(0,6)); })
+}
+
+return(<div className="header">
+
+<div className="menu">
+<i id="men" className="fal fa-bars"></i>
+<div id="menu" className="menubar">
+{log?<div className="profile">
+  <div className="user">
+    <img src="/images/profile.png" width="40px" height="42px"/>
+    <div className="det">
+      <p><span>Address : </span>{user.substr(0,5)+'....'+user.substr(-5)}</p>
+      <p><span>Balance : </span>{balance+' '}<i class="fab fa-ethereum"></i></p>
+    </div>
+  </div>
+</div>:null}
+<li><Link to="/"><i className="far fa-home-alt"></i> Home </Link></li>
+<li><Link to="/stared-files"><i className="far fa-star"></i> Stared Files</Link></li>
+<li><Link to="/local-files"><i className="far fa-server"></i>  Local Files </Link></li>
+<li><Link to="/readme.md"><i className="far fa-book"></i>  Readme.MD </Link></li>
+</div>
+</div>
+
+<logo>Web3<span>Drive</span></logo>
+
+</div>)}
+
+//Add Files...
+
+const Add = () => {
+
+const [add, setAdd] = useState(false)
+const [option, setOption] = useState('local')
+
+function Add() {
+if(log===true) {
+  setAdd(!add)
+} else {
+if(confirm('please login...')===true){
+  LogIn();
+} else { null }
+}
+}
+
+const [files, setFiles] = useState(null)
+function onChange(e) {
+setFiles(Array.from(e.target.files))
+}
+
+async function Upload() {
+
+document.getElementById('i').className="fad fa-spinner-third fa-spin";
+
+var z = document.getElementById('input').files
+
+if(option == "blockchain") {
+  async function Ipfs() {
+  for(var i = 0; (i < z.length)&&(i<5); i++) {
+  var name = z[i].name
+  var size = z[i].size
+  const a = new Moralis.File(z[i].name, z[i])
+  await a.saveIPFS().then(() => {
+  data.push({
+  user : user,
+  date : new Date(Date.now()).getDate()+'/'+(new Date(Date.now()).getMonth()+1)+'/'+new Date(Date.now()).getFullYear(),
+  name : name,
+  file : 'https://ipfs.io/ipfs/'+a.hash(),
+  size : size/1024,
+  time : Date.now()
+  }) })
+  }}
+  function Save() {
+  var hash = CryptoJS.AES.encrypt(JSON.stringify(data), key, {
+    iv: iv,
+    mode: CryptoJS.mode.CBC,
+    padding: CryptoJS.pad.Pkcs7
+  }).toString()
+  const ipfs = [{ "hash": hash }]
+  const g = new Moralis.File('i.json', { base64: btoa(JSON.stringify(ipfs)) })
+  g.saveIPFS().then(() => {
+    document.getElementById('i').className = "far fa-upload"
+    console.log(g.hash())
+    window.ethereum.request({ method: 'eth_sendTransaction', params: [{
+    from: user,
+    to: addr,
+    data:contract.methods.setVal(g.hash() ).encodeABI()
+    }] }).then(() => {
+      setNone("a")
+      setAdd(false)
+      setFiles(null)
+    })
+  })
+  }
+Ipfs().then(() => Save() )
+} else {
+  async function IpfsL() {
+  for(var i = 0; (i < z.length)&&(i<5); i++) {
+  var name = z[i].name
+  var size = z[i].size
+  const a = new Moralis.File(z[i].name, z[i])
+  await a.saveIPFS().then(() => {
+  dataL.push({
+    user : user,
+    date : new Date(Date.now()).getDate()+'/'+(new Date(Date.now()).getMonth()+1)+'/'+new Date(Date.now()).getFullYear(),
+    name : name,
+    file : 'https://ipfs.io/ipfs/'+a.hash(),
+    size : size/1024,
+    time : Date.now()
+  }); })
+  }}
+  function SaveL() {
+  var hashL = CryptoJS.AES.encrypt(JSON.stringify(dataL), key, {
+    iv: iv,
+    mode: CryptoJS.mode.CBC,
+    padding: CryptoJS.pad.Pkcs7
+  }).toString()
+  localStorage.setItem('data',hashL)
+  document.getElementById('i').className = "fas fa-file-alt"
+  console.log(hashL)
+  setNone("b")
+  setAdd(false)
+  setFiles(null)
+  }
+  IpfsL().then(() => SaveL() )
+}
+
+}
+
+return(<div className="add">
+
+{add?<div id="file"><div className="file">
+<p className="top">
+<a>Choose Files</a>
+<select defaultValue={option} onChange={e => setOption(e.target.value)}>
+  <option>local</option>
+  <option>blockchain</option>
+</select>
+<i onClick={(e)=>setAdd(false)} className="far fa-times"></i>
+</p>
+<input onChange={onChange} id="input" type="file" multiple/><br/>
+{files!==null?<div>
+{files.splice(0,5).map(d => (
+<p className="files"><i className="fas fa-file-alt"></i>{' '+d.name.substr(0,6)+'...'+d.name.substr(-7)+' - '+(d.size/1024).toFixed()+'KB'}</p>
+))}}
+<button onClick={Upload} type="button">Upload <i id="i" className="far fa-upload"></i></button>
+</div> :null}
+</div></div>:null}
+
+<div onClick={(e)=>Add()}  className="add">
+<i className={add?"far fa-times":"far fa-plus"}></i>
+</div>
+
+</div>)}
+
+//Home...
+
+const Home = () => {
+
+const dataAll = [...data,...dataL]
+
+return(<div><Add/>
+
+<div className="head">{'/ Home'}</div>
+<p style={{display:"none",fontSize:"0"}}>{none}</p>
+<p className="null">{dataAll.filter(e=>e.user==user).length<1?"No Files Added!":""}</p>
+
+{dataAll.filter(e=>e.user==user).sort((a, b) => { return b.time - a.time;}).filter(e => e.name!==undefined).map(d => (
+<div className="file-box">
+  <i className="fas fa-file-alt"></i>
+  <p><a>{d.name.length>20?d.name.substr(0,25)+'....':d.name}<i style={{marginTop:"-10px"}} className={JSON.stringify(data).includes(d.time)?"far fa-star":""}/></a><span>added : {d.date}</span></p>
+  <i id="f-menu" className="far fa-ellipsis-v">
+  <div className="file-menu">
+    <li><i className="far fa-external-link"></i> <a href={d.file}>Open</a></li>
+    <li onClick={(e) => navigator.clipboard.writeText(d.file)}><i className="far fa-clone"></i> Copy</li>
+  </div>
+  </i>
+</div>))}
+
+</div>)}
+
+const Stared = () => {
+
+return(<div><Add/>
+
+<div className="head">{'/ Blockchain Hash Files '}</div>
+<p style={{display:"none",fontSize:"0"}}>{none}</p>
+<p className="null">{data.filter(e=>e.user==user).length<1?"No Files Added!":""}</p>
+
+{data.sort((a, b) => { return b.time - a.time;}).filter(e => e.user==user).map(d => (
+<div className="file-box">
+  <i className="fas fa-file-alt"></i>
+  <p><a>{d.name.length>20?d.name.substr(0,25)+'....':d.name}</a><span>added : {d.date}</span></p>
+  <i id="f-menu" className="far fa-ellipsis-v">
+  <div className="file-menu">
+    <li><i className="far fa-external-link"></i> <a href={d.file}>Open</a></li>
+    <li onClick={(e) => navigator.clipboard.writeText(d.file)}><i className="far fa-clone"></i> Copy</li>
+  </div>
+  </i>
+</div>))}
+
+</div>)}
+
+const Local = () => {
+
+return(<div><Add/>
+
+<div className="head">{'/ Local Hash files'}</div>
+<p style={{display:"none",fontSize:"0"}}>{none}</p>
+<p className="null">{dataL.filter(e=>e.name!==undefined).length<1?"No Files Added!":""}</p>
+
+{dataL.filter(e =>e.name!==undefined).sort((a, b) => { return b.time - a.time;}).map(d => (
+<div className="file-box">
+  <i className="fas fa-file-alt"></i>
+  <p><a>{d.name.length>20?d.name.substr(0,25)+'....':d.name}</a><span>added : {d.date}</span></p>
+  <i id="f-menu" className="far fa-ellipsis-v">
+  <div className="file-menu">
+    <li><i className="far fa-external-link"></i> <a href={d.file}>Open</a></li>
+    <li onClick={(e) => navigator.clipboard.writeText(d.file)}><i className="far fa-clone"></i> Copy</li>
+  </div>
+  </i>
+</div>))}
+
+</div>)}
+
+const Readme = () => {
+
+return(<div>
+
+<div className="head">{'/ Readme.MD'}</div>
+
+<div className="readme">
+<b>Santhosh Reddy </b>
+<p>👋 Hello World! This is Santhosh Reddy, the developer of Web3Drive and a web and blockchain dev...</p>
+<p><a href="https://twitter.com/k_santosh2005">Follow/Contact me : <i class="fab fa-twitter"></i></a></p>
+<p>Be sure that you are using metamask which is required to use this Dapp.</p>
+<b>Document</b>
+<p>Web3Drive is a Decentralized Progressive Web App. This was built with the tech stack - React.JS + Web3.JS + IPFS + Crypto.JS + Solidity.</p>
+<p>The front-end of the Dapp is built with React.JS and Web3.JS is used to interact with smart contract created with Solidity which is used to store data on ethereum blockchain.</p>
+<p>The main aim behind building Web3Drive is to create a file storage drive where all the files are stored in IPFS (InterPlanetary File Storage)  and the hashes of those files are either stored in ethereum blockchain through smart contract created with solidity or in the localStorage of the user's browser.</p>
+<p>The data of the files will be encrypted with AES256 algorithm with Crypto.JS before sending them to the blockchain or localStorage. Storing the data of files in blockchain is a bit costlier (charges gas fee), where as, storing the data of files in localStorage is free of cost and without any security loop, but if the user's browser data is cleared the data of files will be lost</p>
+<p>It's the user's choice to select where the data of files should be stored. Happy using Web3Drive...🙂</p>
+<p>Note: The files in IPFS will never be lost but the hash which is required to retrieve the file may be lost when you store the data in localStorage. This can be solved by saving the file url somewhere else. The maximum file size that can be stored in IPFS is 1GB. A small drawback here is, uploading  files to IPFS is a bit slow!</p>
+<b>Disclaimer</b>
+<p>Web3Drive is an open-source project and anyone can use this Dapp for free of cost. This Dapp is licensed(MIT) and using the souce code of this Dapp is strictly not allowed.</p>
+</div>
+
+</div>)}
+
+return(<Router><Header/>
+
+<div id="main" className="main"><Switch>
+
+<Route exact path="/"><Home/></Route>
+<Route exact path="/stared-files"><Stared/></Route>
+<Route exact path="/local-files"><Local/></Route>
+<Route exact path="/readme.md"><Readme/></Route>
+
+</Switch></div>
+
+</Router>)}
+
+//End
+
+const Dapp = React.memo(App)
+
+ReactDOM.render(<Dapp/>, document.getElementById('app'))
+
+</script>
+
+</body>
+
+</html>
