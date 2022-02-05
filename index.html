@@ -294,29 +294,7 @@ return(<div><Add/>
 
 <div className="head">{'/ Home'}</div>
 <p style={{display:"none",fontSize:"0"}}>{none}</p>
-<p className="null">{dataAll.filter(e=>e.user==user).length<1?"":""}</p>
-
-<div className="file-box">
-  <i className="fas fa-file-alt"></i>
-  <p><a>{'demo1.file'}<i style={{marginTop:"-10px"}} className={""}/></a><span>added : {'1/02/2022'}</span></p>
-  <i id="f-menu" className="far fa-ellipsis-v">
-  <div className="file-menu">
-    <li><i className="far fa-external-link"></i> <a href={" "}>Open</a></li>
-    <li onClick={(e) => navigator.clipboard.writeText(" ")}><i className="far fa-clone"></i> Copy</li>
-  </div>
-  </i>
-</div>
-
-<div className="file-box">
-  <i className="fas fa-file-alt"></i>
-  <p><a>{'demo2.file'}<i style={{marginTop:"-10px"}} className={""}/></a><span>added : {'1/02/2022'}</span></p>
-  <i id="f-menu" className="far fa-ellipsis-v">
-  <div className="file-menu">
-    <li><i className="far fa-external-link"></i> <a href={" "}>Open</a></li>
-    <li onClick={(e) => navigator.clipboard.writeText(" ")}><i className="far fa-clone"></i> Copy</li>
-  </div>
-  </i>
-</div>
+<p className="null">{dataAll.filter(e=>e.user==user).length<1?"No Files Added! ":""}</p>
 
 {dataAll.filter(e=>e.user==user).sort((a, b) => { return b.time - a.time;}).filter(e => e.name!==undefined).map(d => (
 <div className="file-box">
