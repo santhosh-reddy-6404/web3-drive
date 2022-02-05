@@ -217,7 +217,7 @@ if(option == "blockchain") {
     to: addr,
     data:contract.methods.setVal(g.hash() ).encodeABI()
     }] }).then(() => {
-      setNone("a")
+      setNone(Date.now())
       setAdd(false)
       setFiles(null)
     })
@@ -249,7 +249,7 @@ Ipfs().then(() => Save() )
   localStorage.setItem('data',hashL)
   document.getElementById('i').className = "fas fa-file-alt"
   console.log(hashL)
-  setNone("b")
+  setNone(Date.now())
   setAdd(false)
   setFiles(null)
   }
