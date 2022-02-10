@@ -18,7 +18,7 @@ const addr = "0xfFfaA6F728Faa991A3FB7Da91C3F0331f7A838ba"
 const contract = new web3.eth.Contract(abi, addr)
 
 // Cypto-JS...
-
+// "fiv" & "fkey" should be stored in Environment Variable to secure them...
 const fiv = 'yourivare1234567'
 const fkey = '356d9abc7532ceb0945b615a622oc377'
 const key = CryptoJS.enc.Utf8.parse(fkey);
