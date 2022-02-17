@@ -299,7 +299,7 @@ return(<div><Add/>
 {dataAll.filter(e=>e.user==user).sort((a, b) => { return b.time - a.time;}).filter(e => e.name!==undefined).map(d => (
 <div className="file-box">
   <i className="fas fa-file-alt"></i>
-  <p><a>{d.name.length>15?d.name.substr(0,15)+'....':d.name}<i style={{marginTop:"-10px"}} className={JSON.stringify(data).includes(d.time)?"far fa-star":""}/></a><span>added : {d.date}</span></p>
+  <p><a>{d.name.length>25?d.name.substr(0,25)+'....':d.name}<i style={{marginTop:"-10px"}} className={JSON.stringify(data).includes(d.time)?"far fa-star":""}/></a><span>added : {d.date}</span></p>
   <i id="f-menu" className="far fa-ellipsis-v">
   <div className="file-menu">
     <li><i className="far fa-external-link"></i> <a href={d.file}>Open</a></li>
@@ -323,7 +323,7 @@ return(<div><Add/>
 {data.sort((a, b) => { return b.time - a.time;}).filter(e => e.user==user).map(d => (
 <div className="file-box">
   <i className="fas fa-file-alt"></i>
-  <p><a>{d.name.length>15?d.name.substr(0,15)+'....':d.name}</a><span>added : {d.date}</span></p>
+  <p><a>{d.name.length>25?d.name.substr(0,25)+'....':d.name}</a><span>added : {d.date}</span></p>
   <i id="f-menu" className="far fa-ellipsis-v">
   <div className="file-menu">
     <li><i className="far fa-external-link"></i> <a href={d.file}>Open</a></li>
@@ -347,7 +347,7 @@ return(<div><Add/>
 {dataL.filter(e =>e.name!==undefined).sort((a, b) => { return b.time - a.time;}).map(d => (
 <div className="file-box">
   <i className="fas fa-file-alt"></i>
-  <p><a>{d.name.length>15?d.name.substr(0,15)+'....':d.name}</a><span>added : {d.date}</span></p>
+  <p><a>{d.name.length>25?d.name.substr(0,25)+'....':d.name}</a><span>added : {d.date}</span></p>
   <i id="f-menu" className="far fa-ellipsis-v">
   <div className="file-menu">
     <li><i className="far fa-external-link"></i> <a href={d.file}>Open</a></li>
